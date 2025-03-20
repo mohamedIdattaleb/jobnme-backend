@@ -15,7 +15,7 @@ class AuthController extends Controller
     {
         //
         $isValidated = Validator::make($request->all(), [
-            'name' => 'required|string|max:255|unique:users', 
+            'name' => 'required|string|max:255|unique:users',
             'email' => 'required|email|max:255|unique:users',
             'password' => 'required|confirmed|min:6',
             'phone' => 'required|string|unique:users|regex:/^\+?\d{10,15}$/',
@@ -36,31 +36,33 @@ class AuthController extends Controller
         $users->phone = $validatedData['phone'];
         $users->nationality = $validatedData['nationality'];
         $users->date_of_birth = $validatedData['date_of_birth'];
-        $users->gender = $validatedData['gender'];	
+        $users->gender = $validatedData['gender'];
         $users->save();
         return response()->json(['success' => 'You have successfully registered'], 201);
     }
     public function Login(Request $request)
     {
-        $validated = Validator::make($request->all(), [
+        $validator = Validator::make($request->all(), [
             'email' => 'required|email',
-            'password' => 'required',
-        ])->validated();
-    
-        if (Auth::attempt($validated)) {
-            $user = Auth::user(); 
-            $token = $user->createToken('auth_token')->plainTextToken; 
-    
-            return response()->json([
-                'message' => 'Login successful',
-                'user' => [
-                    'name' => $user->name,
-                    'email' => $user->email
-                ],
-                'token' => $token,
-            ]);
+            'password' => 'required'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
         }
-    
-        return response()->json(['error' => 'Invalid credentials'], 401); 
+
+        // Attempt authentication
+        if (!Auth::attempt($request->only('email', 'password'))) {
+            return response()->json(['message' => 'Invalid email or password'], 401);
+        }
+
+        $token = Auth::user()->createToken('user_' . Auth::user()->email)->plainTextToken;
+
+        return response()->json([
+            'token' => $token,
+            'user' => Auth::user()
+        ], 200);
+
+        
     }
 }
