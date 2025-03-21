@@ -39,6 +39,7 @@ class AuthController extends Controller
         ], 201);
     }
 
+
     public function Login(Request $request)
     {
         $validated = Validator::make($request->all(), [
@@ -72,11 +73,11 @@ class AuthController extends Controller
         $user = Auth::user();
 
         $isValidated = Validator::make($request->all(), [
-            'phone' => 'nullable|string|unique:users|regex:/^\+?\d{10,15}$/',
-            'nationality' => 'nullable|string|max:100',
-            'date_of_birth' => 'nullable|date|before:today',
-            'gender' => 'nullable|string',
-            'role' => 'nullable|string',
+            'phone' => 'string|unique:users|regex:/^\+?\d{10,15}$/',
+            'nationality' => 'string|max:100',
+            'date_of_birth' => 'date|before:today',
+            'gender' => 'string',
+            'role' => 'string',
         ]);
 
         if ($isValidated->fails()) {
