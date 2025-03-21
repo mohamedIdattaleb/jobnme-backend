@@ -30,16 +30,26 @@ class AuthController extends Controller
         }
 
         $validatedData = $isValidated->validated();
-        $users = new User();
-        $users->name = $validatedData['name'];
-        $users->email = $validatedData['email'];
-        $users->password = Hash::make($validatedData['password']);
-        $users->phone = $validatedData['phone'];
-        $users->nationality = $validatedData['nationality'];
-        $users->date_of_birth = $validatedData['date_of_birth'];
-        $users->gender = $validatedData['gender'];
-        $users->save();
-        return response()->json(['success' => 'You have successfully registered'], 201);
+        $user = User::create([
+            'name' => $validatedData['name'],
+            'email' => $validatedData['email'],
+            'password' => Hash::make($validatedData['password']),
+            'phone' => $validatedData['phone'],
+            'nationality' => $validatedData['nationality'],
+            'date_of_birth' => $validatedData['date_of_birth'],
+            'gender' => $validatedData['gender'],
+        ]);
+
+        $token = $user->createToken('user_' . $user->email)->plainTextToken;
+
+        return response()->json(
+            [
+                'success' => 'You have successfully registered',
+                'token' => $token,
+                'user' => $user
+            ],
+            201
+        );
     }
     public function Login(Request $request)
     {
@@ -61,7 +71,5 @@ class AuthController extends Controller
                 'token' => $token,
             ]);
         }
-
-        return response()->json(['error' => 'Invalid credentials'], 401);
     }
 }
