@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\Response;
 
 
 class AuthController extends Controller
@@ -42,27 +43,25 @@ class AuthController extends Controller
     }
     public function Login(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $validated = Validator::make($request->all(), [
             'email' => 'required|email',
-            'password' => 'required'
+            'password' => 'required',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        if (Auth::attempt($validated)) {
+            $user = Auth::user();
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            return response()->json([
+                'message' => 'Login successful',
+                'user' => [
+                    'name' => $user->name,
+                    'email' => $user->email
+                ],
+                'token' => $token,
+            ]);
         }
 
-        // Attempt authentication
-        if (!Auth::attempt($request->only('email', 'password'))) {
-            return response()->json(['message' => 'Invalid email or password'], 401);
-        }
-
-        $token = Auth::user()->createToken('user_' . Auth::user()->email)->plainTextToken;
-
-        return response()->json([
-            'token' => $token,
-            'user' => Auth::user()
-        ], 200);
-
-        
+        return response()->json(['error' => 'Invalid credentials'], 401);
     }
 }
