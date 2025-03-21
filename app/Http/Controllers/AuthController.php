@@ -9,20 +9,14 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Response;
 
-
 class AuthController extends Controller
 {
     public function Register(Request $request)
     {
-        //
         $isValidated = Validator::make($request->all(), [
             'name' => 'required|string|max:255|unique:users',
             'email' => 'required|email|max:255|unique:users',
             'password' => 'required|confirmed|min:6',
-            'phone' => 'required|string|unique:users|regex:/^\+?\d{10,15}$/',
-            'nationality' => 'required|string|max:100',
-            'date_of_birth' => 'required|date|before:today',
-            'gender' => 'required',
         ]);
 
         if ($isValidated->fails()) {
@@ -34,36 +28,32 @@ class AuthController extends Controller
             'name' => $validatedData['name'],
             'email' => $validatedData['email'],
             'password' => Hash::make($validatedData['password']),
-            'phone' => $validatedData['phone'],
-            'nationality' => $validatedData['nationality'],
-            'date_of_birth' => $validatedData['date_of_birth'],
-            'gender' => $validatedData['gender'],
         ]);
 
         $token = $user->createToken('user_' . $user->email)->plainTextToken;
 
-        return response()->json(
-            [
-                'success' => 'You have successfully registered',
-                'token' => $token,
-                'user' => $user
-            ],
-            201
-        );
+        return response()->json([
+            'success' => 'You have successfully registered',
+            'token' => $token,
+            'user' => $user
+        ], 201);
     }
+
     public function Login(Request $request)
     {
         $validated = Validator::make($request->all(), [
             'email' => 'required|email',
             'password' => 'required',
         ]);
+
         if ($validated->fails()) {
             return response()->json(['error' => $validated->errors()], 500);
-        };
+        }
 
         if (!Auth::attempt($request->only('email', 'password'))) {
             return response()->json(['message' => 'Invalid email or password'], 401);
         }
+
         $user = Auth::user();
         $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -74,6 +64,30 @@ class AuthController extends Controller
                 'email' => $user->email
             ],
             'token' => $token,
+        ]);
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+
+        $isValidated = Validator::make($request->all(), [
+            'phone' => 'nullable|string|unique:users|regex:/^\+?\d{10,15}$/',
+            'nationality' => 'nullable|string|max:100',
+            'date_of_birth' => 'nullable|date|before:today',
+            'gender' => 'nullable|string',
+            'role' => 'nullable|string',
+        ]);
+
+        if ($isValidated->fails()) {
+            return response()->json(['errors' => $isValidated->errors()], 422);
+        }
+
+        $user->update($isValidated->validated());
+
+        return response()->json([
+            'message' => 'Profile updated successfully',
+            'user' => $user
         ]);
     }
 }
