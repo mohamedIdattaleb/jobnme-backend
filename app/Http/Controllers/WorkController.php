@@ -1,65 +1,62 @@
 <?php
-
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Models\Work;
 use Illuminate\Http\Request;
 
 class WorkController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of the works.
      */
     public function index()
     {
-        
+        return response()->json(Work::all());
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
+     * Store a newly created work in storage.
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'title' => 'required|unique:work|max:255',
+            'description' => 'required',
+            'location' => 'required',
+            'type' => 'required|in:Online,In-Person',
+            'category' => 'required',
+            'status' => 'in:Open,Closed',
+            'salary' => 'required|integer',
+            'email' => 'required|email|unique:work',
+        ]);
+
+        $work = Work::create($request->all());
+        return response()->json($work, 201);
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified work.
      */
-    public function show(string $id)
+    public function show(Work $work)
     {
-        //
+        return response()->json($work);
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Update the specified work.
      */
-    public function edit(string $id)
+    public function update(Request $request, Work $work)
     {
-        //
+        $work->update($request->all());
+        return response()->json($work);
     }
 
     /**
-     * Update the specified resource in storage.
+     * Remove the specified work from storage.
      */
-    public function update(Request $request, string $id)
+    public function destroy(Work $work)
     {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        $work->delete();
+        return response()->json(null, 204);
     }
 }
