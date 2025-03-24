@@ -12,7 +12,7 @@ return new class extends Migration {
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique();
+            $table->string('name'); // Removed unique constraint
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('phone')->unique()->nullable();
@@ -20,6 +20,7 @@ return new class extends Migration {
             $table->enum('gender', ['male', 'female'])->nullable();
             $table->date('date_of_birth')->nullable();
             $table->string('password');
+            $table->string('google_id')->unique()->nullable(); // Corrected and made unique and nullable
             $table->enum('role', ['job_seeker', 'employer', 'admin'])->default('job_seeker');
             $table->rememberToken();
             $table->timestamps();
