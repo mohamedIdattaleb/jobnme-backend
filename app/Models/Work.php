@@ -23,4 +23,8 @@ class Work extends Model
         'salary',
         'email',
     ];
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
